@@ -1,47 +1,64 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <div class="d-flex justify-content-center">
-	<div class="sign-up-box">
-		<h1 class="m-4 font-weight-bold">회원가입</h1>
-		<form id="signUpForm" method="post" action="/user/sign-up">
-			<span class="sign-up-subject">ID</span>
-			<%-- 인풋 옆에 중복확인 버튼을 옆에 붙이기 위해 div 만들고 d-flex --%>
-			<div class="d-flex ml-3 mt-3">
-				<input type="text" id="loginId" name="loginId" class="form-control col-6" placeholder="ID를 입력해주세요">
-				<button type="button" id="loginIdCheckBtn" class="btn btn-success">중복확인</button>
+	<div class="login-box">
+		<h1 class="mb-4">로그인</h1>
+		
+		<%-- 키보드 Enter키로 로그인이 될 수 있도록 form 태그를 만들어준다.(submit 타입의 버튼이 동작됨) --%>
+		<form id="loginForm" action="/user/sign-in" method="post">
+			<div class="input-group mb-3">
+				<%-- input-group-prepend: input box 앞에 ID 부분을 회색으로 붙인다. --%>
+				<div class="input-group-prepend">
+					<span class="input-group-text">ID</span>
+				</div>
+				<input type="text" class="form-control" id="loginId" name="loginId">
+			</div>
+	
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text">PW</span>
+				</div>
+				<input type="password" class="form-control" id="password" name="password">
 			</div>
 			
-			<%-- 아이디 체크 결과 --%>
-			<div class="ml-3 mb-3">
-				<div id="idCheckLength" class="small text-danger d-none">ID를 4자 이상 입력해주세요.</div>
-				<div id="idCheckDuplicated" class="small text-danger d-none">이미 사용중인 ID입니다.</div>
-				<div id="idCheckOk" class="small text-success d-none">사용 가능한 ID 입니다.</div>
-			</div>
-			
-			<span class="sign-up-subject">Password</span>
-			<div class="m-3">
-				<input type="password" name="password" class="form-control col-6" placeholder="비밀번호를 입력하세요">
-			</div>
-
-			<span class="sign-up-subject">Confirm password</span>
-			<div class="m-3">
-				<input type="password" name="confirmPassword" class="form-control col-6" placeholder="비밀번호를 입력하세요">
-			</div>
-
-			<span class="sign-up-subject">Name</span>
-			<div class="m-3">
-				<input type="text" name="name" class="form-control col-6" placeholder="이름을 입력하세요">
-			</div>
-
-			<span class="sign-up-subject">이메일</span>
-			<div class="m-3">
-				<input type="text" name="email" class="form-control col-6" placeholder="이메일을 입력하세요">
-			</div>
-			
-			<br>
-			<div class="d-flex justify-content-center m-3">
-				<button type="submit" id="signUpBtn" class="btn btn-info">가입하기</button>
-			</div>
+			<%-- btn-block: 로그인 박스 영역에 버튼을 가득 채운다. --%>
+			<input type="submit" id="loginBtn" class="btn btn-block btn-primary" value="로그인">
+			<a class="btn btn-block btn-dark" href="/user/sign-up-view">회원가입</a>
 		</form>
 	</div>
 </div>
+
+<script>
+	$(document).ready(function() {
+		$("#loginForm").on("submit",function(e) {
+			//화면 이동 방지
+			e.preventDefault();
+			let loginId = $("#loginId").val().trim();
+			let password = $("#password").val().trim();
+			
+			if (loginId == "") {
+				alert("아이디를 입력하세요");
+				return false;
+			}
+			if (password == "") {
+				alert("비밀번호를 입력하세요");
+				return false;
+			}
+			
+			// ajax
+			let url = $(this).attr("action");
+			let params = $(this).serialize(); // 비밀번호
+			console.log(params);
+			$.post(url, params) // 컨트롤러로 보낼 request
+			.done(function(data) {
+				// code 200 , result "성공"
+				if (data.result == "성공") {
+					// 로그인 성공 시 time 화면 으로 이동 (글쓰기 버튼 포함)
+					location href = "/timeline/timeline-view";
+				} else {
+					alert(data.error_message);
+				}
+			});
+		});
+	});
+</script>

@@ -26,4 +26,8 @@ public class UserBO {
 				);
 		return userEntity == null ? null : userEntity.getId();
 	}
+	
+	public UserEntity getUserEntityByloginIdPassword(String loginId, String password) {
+		return userRepository.findByLoginIdAndPassword(loginId,password);
+	}
 }
