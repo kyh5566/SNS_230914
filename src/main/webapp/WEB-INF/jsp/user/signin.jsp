@@ -32,7 +32,7 @@
 <script>
 $(document).ready(function() {
 	// 로그인 서브밋
-	$("#loginForm").submit(function(e) {
+	$('#loginForm').submit(function(e) {
 		e.preventDefault(); // submit 자동 수행 중단
 		
 		var loginId = $('input[name=loginId]').val().trim();
@@ -53,7 +53,7 @@ $(document).ready(function() {
 		
 		$.post(url, data)
 		.done(function(data) {
-			if (data.code == 200) {
+			if (data.result == "성공") {
 				location.href="/timeline/timeline-view"; 
 			} else {
 				alert("로그인에 실패했습니다. 다시 시도해주세요.");

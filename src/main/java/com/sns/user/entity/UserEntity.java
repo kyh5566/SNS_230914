@@ -43,7 +43,4 @@ public class UserEntity {
 	@Column(name = "updatedAt")
 	private ZonedDateTime updatedAt;
 
-	public static UserEntityBuilder builder() {
-		return null;
-	}
 }
