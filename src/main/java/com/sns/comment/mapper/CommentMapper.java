@@ -1,11 +1,18 @@
 package com.sns.comment.mapper;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import com.sns.comment.domain.Comment;
 
 @Mapper
 public interface CommentMapper {
-	public List<Map<String, Object>> selectCommentList();
+	public List<Comment> selectCommentList();
+	
+	public void insertComment(
+			@Param("content")String content,
+			@Param("postId")int postId, 
+			@Param("userId")int userId);
 }

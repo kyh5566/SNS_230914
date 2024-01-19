@@ -34,11 +34,11 @@ public class TestController {
 	public String test3() {
 		return "test/test";
 	}
-	@GetMapping("/test4")
-	@ResponseBody
-	public List<Map<String, Object>> test4() {
-		return commentMapper.selectCommentList();
-	}
+//	@GetMapping("/test4")
+//	@ResponseBody
+//	public List<Map<String, Object>> test4() {
+//		return commentMapper.selectCommentList();
+//	}
 	@GetMapping("/signup")
 	public String signup() {
 		return "sns/signup";

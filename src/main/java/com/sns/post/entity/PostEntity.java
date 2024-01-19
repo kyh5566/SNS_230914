@@ -1,4 +1,4 @@
-package com.sns.timeline.entity;
+package com.sns.post.entity;
 
 import java.time.ZonedDateTime;
 

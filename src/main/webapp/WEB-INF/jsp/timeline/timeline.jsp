@@ -67,20 +67,23 @@
 				<%-- 댓글 목록 --%>
 				<div class="card-comment-list m-2">
 					<%-- 댓글 내용들 --%>
+					<c:forEach items="${commentList}" var="comment">
+					<c:if test="${comment.postId eq post.id}">
 					<div class="card-comment m-1">
-						<span class="font-weight-bold">댓글쓰니</span>
-						<span>댓글 내용1111</span>
+						<span class="font-weight-bold">${comment.userId}</span>
+						<span>${comment.content}</span>
 						
 						<%-- 댓글 삭제 버튼 --%>
 						<a href="#" class="comment-del-btn">
 							<img src="https://www.iconninja.com/files/603/22/506/x-icon.png" width="10" height="10">
 						</a>
 					</div>
-					
+					</c:if>
+					</c:forEach>
 					<%-- 댓글 쓰기 --%>
 					<div class="comment-write d-flex border-top mt-2">
 						<input type="text" class="form-control border-0 mr-2 comment-input" placeholder="댓글 달기"/> 
-						<button type="button" class="comment-btn btn btn-light">게시</button>
+						<button type="button" class="comment-btn btn btn-light" data-user-id="${userId}" data-post-id="${post.id}">게시</button>
 					</div>
 				</div> <%--// 댓글 목록 끝 --%>
 			</div> <%--// 카드1 끝 --%>
@@ -135,21 +138,76 @@
 				alert("업로드 할 이미지를 선택하세요");
 				return;
 			}
-			// 이미지 유효성 체크
-			<%--
-			if (fileName) {
-				//alert(fileName);
-				let ext = fileName.split(".").pop().toLowerCase();
-				//alert(ext);
-				if ($.inArray(extension,["jpg","png","gif","jpeg"]) == -1) {
-					alert("이미지 파일만 업로드 가능");
-					$("#file").val("");
-					return;
+			let formData = new FormData();
+			// append 로 컨트롤러에 전달 할 content, file 추가
+			formData.append("content", content);
+			formData.append("file",$("#file")[0].files[0]);
+			
+			//ajax
+			$.ajax({
+				//request
+				type:"post"
+				,url:"/post/create"
+				,data:formData
+				,enctype:"multipart/form-data"
+				,processData:false
+				,contentType:false
+				//response
+				,success:function(data) {
+					if (data.code == 200) {
+						location.reload();
+					} else {
+						alert(data.error_message);
+					}
 				}
+				,error:function(request,status,error) {
+					alert("글을 게시하는데 실패했습니다");
+				}
+			})
+			
+		});
+		// 댓글 쓰기
+		$(".comment-btn").on("click", function() {
+			//alert("댓글버튼");
+			let userId = $(this).data("user-id");
+			//alert(userId);
+			if (!userId) {
+				// 비로그인 이면 로그인 화면 이동
+				alert("로그인을 해주세요");
+				location.href="/user/sign-in-view";
+				return;
 			}
-			--%>
+			let postId = $(this).data("post-id");
+			//alert(postId);
 			
+			// 댓글 내용 가져오기
+			// 1) 이전 태그에 있는 값을 가져온다
+			//let content = $(this).prev().val();
+			//alert(content);
 			
+			// 2) 형재 태그중 input 값 가져오기
+			let content = $(this).siblings("input").val();
+			//ajax
+			$.ajax({
+				//request
+				type:"post"
+				,url:"/comment/create"
+				,data:{"content":content,"postId":postId}
+				//response
+				,success:function(data) {
+					// code:200  result 성공
+					if (data.code == 200) {
+						//alert("response");
+						location.reload(true);
+					} else {
+						// 댓글 게시에 실패했습니다
+						alert(data.error_message);
+					}
+				}
+				,error:function(request,status,error) {
+					alert("ajax에러");
+				}
+			});
 		});
 	});
 </script>
