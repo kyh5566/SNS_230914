@@ -27,12 +27,12 @@
 		
 		<%-- 타임라인 영역 --%>
 		<div class="timeline-box my-5">
-			<c:forEach items="${postList}" var="post">
+			<c:forEach items="${cardViewList}" var="card">
 			<%-- 카드1 --%>
 			<div class="card border rounded mt-3">
 				<%-- 글쓴이, 더보기(삭제) --%>
 				<div class="p-2 d-flex justify-content-between">
-					<span class="font-weight-bold">${post.userId}</span>
+					<span class="font-weight-bold">${card.user.loginId}</span>
 					
 					<a href="#" class="more-btn">
 						<img src="https://www.iconninja.com/files/860/824/939/more-icon.png" width="30">
@@ -41,22 +41,28 @@
 				
 				<%-- 카드 이미지 --%>
 				<div class="card-img">
-					<img src="${post.imagePath}" class="w-100" alt="본문 이미지">
+					<img src="${card.post.imagePath}" class="w-100" alt="본문 이미지">
 				</div>
 				
 				<%-- 좋아요 --%>
 				<div class="card-like m-3">
-					<a href="#" class="like-btn">
+				<c:if test="${card.filledLike eq false}">
+					<a href="#" class="like-btn" data-post-id="${card.post.id}">
 						<img src="https://www.iconninja.com/files/214/518/441/heart-icon.png" width="18" height="18" alt="empty heart">
 					</a>
-					
-					좋아요 13개
+				</c:if>
+				<c:if test="${card.filledLike eq true}">
+					<a href="#" class="like-btn" data-post-id="${card.post.id}">
+						<img src="https://www.iconninja.com/files/527/809/128/heart-icon.png" width="18" height="18" alt="filld heart">
+					</a>
+				</c:if>
+					좋아요 ${card.likeCount}개
 				</div>
 				
 				<%-- 글 --%>
 				<div class="card-post m-3">
-					<span class="font-weight-bold">${post.userId}</span>
-					<span>${post.content}</span>
+					<span class="font-weight-bold">${card.user.loginId}</span>
+					<span>${card.post.content}</span>
 				</div>
 				
 				<%-- 댓글 제목 --%>
@@ -67,23 +73,24 @@
 				<%-- 댓글 목록 --%>
 				<div class="card-comment-list m-2">
 					<%-- 댓글 내용들 --%>
-					<c:forEach items="${commentList}" var="comment">
-					<c:if test="${comment.postId eq post.id}">
+					<c:forEach items="${card.commentList}" var="commentView">
 					<div class="card-comment m-1">
-						<span class="font-weight-bold">${comment.userId}</span>
-						<span>${comment.content}</span>
+						<span class="font-weight-bold">${commentView.user.loginId}</span>
+						<span>${commentView.comment.content}</span>
 						
-						<%-- 댓글 삭제 버튼 --%>
-						<a href="#" class="comment-del-btn">
+						<%-- 댓글 삭제 버튼(자신의 댓글만 삭제 버튼 노출) --%>
+						<c:if test="${userId eq commentView.comment.userId}">
+						<a href="#" class="comment-del-btn" data-comment-id="${commentView.comment.id}">
 							<img src="https://www.iconninja.com/files/603/22/506/x-icon.png" width="10" height="10">
 						</a>
+						</c:if>
 					</div>
-					</c:if>
 					</c:forEach>
+					
 					<%-- 댓글 쓰기 --%>
 					<div class="comment-write d-flex border-top mt-2">
 						<input type="text" class="form-control border-0 mr-2 comment-input" placeholder="댓글 달기"/> 
-						<button type="button" class="comment-btn btn btn-light" data-user-id="${userId}" data-post-id="${post.id}">게시</button>
+						<button type="button" class="comment-btn btn btn-light" data-user-id="${userId}" data-post-id="${card.post.id}">게시</button>
 					</div>
 				</div> <%--// 댓글 목록 끝 --%>
 			</div> <%--// 카드1 끝 --%>
@@ -122,6 +129,7 @@
 				$("#fileName").text(""); // 보여지는 파일명 비우기
 				return;
 			}
+			
 			// 유효성 통과한 이미지의 경우 파일명 노출
 			$("#fileName").text(fileName);
 		});
@@ -129,83 +137,143 @@
 		// 글쓰기
 		$("#writeBtn").on('click', function() {
 			//alert("게시 버튼");
-			// 글 내용
-			let content = $("#writeTextArea").val();
-			// 이미지
-			let fileName = $("#file").val();
-			// 이미지는 null 불가능
-			if (fileName == "") {
-				alert("업로드 할 이미지를 선택하세요");
+			
+			let content = $('#writeTextArea').val();
+			console.log(content);
+			
+			let file = $('#file').val();
+			if (file == '') {
+				alert('파일을 업로드 해주세요');
 				return;
 			}
-			let formData = new FormData();
-			// append 로 컨트롤러에 전달 할 content, file 추가
-			formData.append("content", content);
-			formData.append("file",$("#file")[0].files[0]);
 			
-			//ajax
+			// 파일이 업로드 된 경우 확장자 체크
+			let ext = file.split('.').pop().toLowerCase(); // 파일 경로를 .으로 나누고 확장자가 있는 마지막 문자열을 가져온 후 모두 소문자로 변경
+			if ($.inArray(ext, ['gif', 'png', 'jpg', 'jpeg']) == -1) {
+				alert("gif, png, jpg, jpeg 파일만 업로드 할 수 있습니다.");
+				$('#file').val(''); // 파일을 비운다.
+				return;
+			}
+			
+			// 폼태그를 자바스크립트에서 만든다.
+			let formData = new FormData();
+			formData.append("content", content);
+			formData.append("file", $('#file')[0].files[0]); // $('#file')[0]은 첫번째 input file 태그를 의미, files[0]는 업로드된 첫번째 파일
+			
+			// AJAX form 데이터 전송
 			$.ajax({
-				//request
-				type:"post"
-				,url:"/post/create"
-				,data:formData
-				,enctype:"multipart/form-data"
-				,processData:false
-				,contentType:false
-				//response
-				,success:function(data) {
+				// request
+				type: "post"
+				, url: "/post/create"
+				, data: formData
+				, enctype: "multipart/form-data"    // 파일 업로드를 위한 필수 설정
+				, processData: false    // 파일 업로드를 위한 필수 설정
+				, contentType: false    // 파일 업로드를 위한 필수 설정
+				
+				// response
+				, success: function(data) {
 					if (data.code == 200) {
 						location.reload();
+					} else if (data.code == 500) { // 비로그인 일 때
+						location.href = "/user/sign-in-view";
 					} else {
 						alert(data.error_message);
 					}
 				}
-				,error:function(request,status,error) {
-					alert("글을 게시하는데 실패했습니다");
+				, error: function(e) {
+					alert("글 저장에 실패했습니다. 관리자에게 문의해주세요.");
 				}
-			})
-			
+			});  // --- ajax 끝
 		});
+		
 		// 댓글 쓰기
-		$(".comment-btn").on("click", function() {
-			//alert("댓글버튼");
+		$(".comment-btn").on('click', function() {
+			//alert("댓글 쓰기");
 			let userId = $(this).data("user-id");
 			//alert(userId);
 			if (!userId) {
-				// 비로그인 이면 로그인 화면 이동
-				alert("로그인을 해주세요");
-				location.href="/user/sign-in-view";
+				// 비로그인이면 로그인 화면 이동
+				alert("로그인을 해주세요.");
+				location.href = "/user/sign-in-view";
 				return;
 			}
+			
 			let postId = $(this).data("post-id");
 			//alert(postId);
 			
 			// 댓글 내용 가져오기
-			// 1) 이전 태그에 있는 값을 가져온다
-			//let content = $(this).prev().val();
+			// 1) 이전 태그 값 가져오기
+			//let content = $(this).prev().val().trim();
+			
+			// 2) 형제 태그 중 input 값 가져오기
+			let content = $(this).siblings("input").val().trim();
 			//alert(content);
 			
-			// 2) 형재 태그중 input 값 가져오기
-			let content = $(this).siblings("input").val();
-			//ajax
 			$.ajax({
-				//request
 				type:"post"
-				,url:"/comment/create"
-				,data:{"content":content,"postId":postId}
-				//response
-				,success:function(data) {
-					// code:200  result 성공
+				, url:"/comment/create"
+				, data:{"postId":postId, "content":content}
+			
+				, success:function(data) {
 					if (data.code == 200) {
-						//alert("response");
+						location.reload(true);
+					} else if (data.code == 500) {
+						alert(data.errorMessage);
+						location.href = "/user/sign-in-view";
+					}
+				}
+				, error:function(request, status, error) {
+					alert("댓글 쓰기 실패했습니다.");
+				}
+			});
+		});
+		
+		// 댓글 삭제
+		$(".comment-del-btn").on('click', function(e) {
+			e.preventDefault(); // 위로 올라감 방지
+			
+			let commentId = $(this).data("comment-id");
+			//alert(commentId);
+			
+			$.ajax({
+				type:"DELETE"
+				, url:"/comment/delete"
+				, data:{"commentId":commentId}
+				, success:function(data) {
+					if (data.code == 200) {
 						location.reload(true);
 					} else {
-						// 댓글 게시에 실패했습니다
 						alert(data.error_message);
 					}
 				}
-				,error:function(request,status,error) {
-					alert("ajax에러");
+				, error:function(request, status, error) {
+					alert("댓글 삭제 하는데 실패했습니다.");
+				}
+			});
+		});
+		
+		// 좋아요 토글
+		$(".like-btn").on('click', function(e) {
+			e.preventDefault();
+			//alert("좋아요");
+			
+			let postId = $(this).data("post-id");
+			//alert(postId);
+			
+			$.ajax({
+				url:"/like/" + postId    //     /like/13
+				, success:function(data) {
+					if (data.code == 200) {
+						// 성공
+						location.reload(true); // 새로고침 => timeline view화면
+					} else if (data.code == 300) {
+						// 비로그인 시 로그인 페이지로 이동
+						alert(data.error_message);
+						location.href = "/user/sign-in-view";
+					}
+				}
+				, error:function(request, status, error) {
+					alert("좋아요를 하는데 실패했습니다.");
 				}
 			});
 		});
