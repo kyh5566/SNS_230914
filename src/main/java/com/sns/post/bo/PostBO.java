@@ -10,6 +10,8 @@ import com.sns.common.FileManagerService;
 import com.sns.post.entity.PostEntity;
 import com.sns.post.repository.PostRepository;
 
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @Service
 public class PostBO {
 	@Autowired
@@ -35,5 +37,22 @@ public class PostBO {
 				.content(content)
 				.imagePath(imagePath)
 				.build());
+	}
+	
+	public void deletePostByPostId(int postId) {
+		// 기존 글 가져오기
+		PostEntity post = postRepository.findById(postId).orElse(null);
+		if (post == null) {
+			log.info("[글 삭제] post is null");
+		}
+		// 글 삭제
+		int rowCount = postRepository.deleteById(postId);
+		
+		// 이미지 삭제
+		if (rowCount > 0) {
+			fileManagerService.deleteFile(post.getImagePath());
+		}
+		// 댓글,좋아요 db에서 삭제
+		
 	}
 }
