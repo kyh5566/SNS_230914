@@ -46,14 +46,19 @@ public class PostRestController {
 	public Map<String,Object> delete(
 			@RequestParam("postId") int postId
 			,HttpSession session) {
-		
-		postBO.deletePostByPostId(postId);
-		
-		
 		Map<String,Object> result = new HashMap<>();
 		
-		result.put("code", 200);
+		Integer userId = (Integer) session.getAttribute("userId");
 		
+		if (userId == null) {
+			result.put("code", 300);
+			result.put("error_message", "로그인을 다시 해주세요.");
+			return result;
+		}
+		
+		postBO.deletePostByPostId(postId,userId);
+		result.put("code", 200);
+		result.put("result", "성공");	
 		return result;
 	}
 }

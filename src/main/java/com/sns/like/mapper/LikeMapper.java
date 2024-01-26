@@ -29,5 +29,5 @@ public List<Map<String, Object>> selectLikeList();
 			@Param("postId") int postId,
 			@Param("userId") int userId);
 	
-	
+	public void deleteLikeById(int postId);
 }

@@ -37,4 +37,8 @@ public class LikeBO {
 		// 로그인 0보다 크면 채운 하트, 그렇지않으면 false
 		return likeMapper.selectLikeCountByPostIdOrUserId(postId, userId) > 0; 
 	}
+	
+	public void deleteLikeById(int postId) {
+		likeMapper.deleteLikeById(postId);
+	}
 }

@@ -33,11 +33,12 @@
 				<%-- 글쓴이, 더보기(삭제) --%>
 				<div class="p-2 d-flex justify-content-between">
 					<span class="font-weight-bold">${card.user.loginId}</span>
-					<%-- 더보기버튼 로그인된사람과 글쓴이 정보가 일치할때만 노출 --%>
+					
+					<%-- (더보기 ... 버튼) 로그인 된 사람과 글쓴이 정보가 일치할 때 노출 --%>
 					<c:if test="${userId eq card.post.userId}">
-						<a href="#" class="more-btn" data-toggle="modal" data-target="#modal" data-post-id="${card.post.id}">
-							<img src="https://www.iconninja.com/files/860/824/939/more-icon.png" width="30">
-						</a>
+					<a href="#" class="more-btn" data-toggle="modal" data-target="#modal" data-post-id="${card.post.id}">
+						<img src="https://www.iconninja.com/files/860/824/939/more-icon.png" width="30">
+					</a>
 					</c:if>
 				</div>	
 				
@@ -48,16 +49,17 @@
 				
 				<%-- 좋아요 --%>
 				<div class="card-like m-3">
-				<c:if test="${card.filledLike eq false}">
+					<c:if test="${card.filledLike eq false}">
 					<a href="#" class="like-btn" data-post-id="${card.post.id}">
 						<img src="https://www.iconninja.com/files/214/518/441/heart-icon.png" width="18" height="18" alt="empty heart">
 					</a>
-				</c:if>
-				<c:if test="${card.filledLike eq true}">
+					</c:if>
+					<c:if test="${card.filledLike eq true}">
 					<a href="#" class="like-btn" data-post-id="${card.post.id}">
-						<img src="https://www.iconninja.com/files/527/809/128/heart-icon.png" width="18" height="18" alt="filld heart">
+						<img src="https://www.iconninja.com/files/527/809/128/heart-icon.png" width="18" height="18" alt="filled heart">
 					</a>
-				</c:if>
+					</c:if>
+					
 					좋아요 ${card.likeCount}개
 				</div>
 				
@@ -101,21 +103,23 @@
 	</div> <%--// contents-box 끝  --%>
 </div>
 
+
 <!-- Modal -->
 <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<%-- modal-sm 작은 모달창
-		modal-dialog-centered 가운데로 위치
-	 --%>
-  	<div class="modal-dialog modal-sm modal-dialog-centered">
-    	<div class="modal-content text-center">
-    		<div class="py-3 border-bottom" >
-    			<a href="#" id="postDelete">삭제</a>
+	<%-- 
+		modal-sm: 작은 모달창 
+		modal-dialog-centered: 수직 기준 가운데 위치
+	--%>
+	<div class="modal-dialog modal-sm modal-dialog-centered">
+		<div class="modal-content text-center">
+			<div class="py-3 border-bottom">
+    			<a href="#" id="postDelete">삭제하기</a>
     		</div>
-    		<div class="py-3">
-    			<a href="#" data-dismiss="modal">취소</a>
+			<div class="py-3">
+    			<a href="#" data-dismiss="modal">취소하기</a>
     		</div>
-    	</div>
-  	</div>
+		</div>
+	</div>
 </div>
 
 <script>
@@ -296,34 +300,38 @@
 				}
 			});
 		});
-		// 더보기 클릭 시 모달 띄우기
-		$(".more-btn").on("click", function(e) {
-			alert("클릭");
-			e.preventDefault(); // 올라가는 현상 방지
-			let postId = $(this).data("post-id"); // getting
-			alert(postId);
+		
+		// 더보기(...) 클릭 => 모달 띄우기
+		$(".more-btn").on('click', function(e) {
+			e.preventDefault(); // a 태그 올라가는 현상 방지
 			
-			// 1개인 모달에 재활용을 위해 data-post-id 를 심는다
+			let postId = $(this).data("post-id"); // getting
+			//alert(postId);
+			
+			// 1개로 존재하는 모달에 재활용을 위해 data-post-id를 심는다.
 			$("#modal").data("post-id", postId); // setting
 		});
-		// 모달안에 있는 삭제하기 클릭 이벤트
-		$("#modal #postDelete").on("click",function(e) {
-			e.preventDefault();
+		
+		// 모달 안에 있는 삭제하기 클릭
+		$("#modal #postDelete").on('click', function(e) {
+			e.preventDefault(); // a 태그 위로 올라가는 현상 방지
 			
 			let postId = $("#modal").data("post-id");
-			alert(postId);
+			//alert(postId);
+			
+			// 글 삭제
 			$.ajax({
-				type="DELETE"
-				,url="/post/delete"
-				,data={"postId":postId}
-				,success:function(data) {
+				type:"delete"
+				, url:"/post/delete"
+				, data: {"postId":postId}
+				, success: function(data) {
 					if (data.code == 200) {
 						location.reload(true);
 					} else {
 						alert(data.error_message);
 					}
 				}
-				,error:function(request, status, error) {
+				, error: function(e) {
 					alert("삭제 실패");
 				}
 			});

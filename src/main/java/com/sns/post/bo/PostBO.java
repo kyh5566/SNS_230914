@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sns.comment.bo.CommentBO;
 import com.sns.common.FileManagerService;
+import com.sns.like.bo.LikeBO;
 import com.sns.post.entity.PostEntity;
 import com.sns.post.repository.PostRepository;
 
@@ -16,8 +18,15 @@ import lombok.extern.slf4j.Slf4j;
 public class PostBO {
 	@Autowired
 	private PostRepository postRepository;
+	
 	@Autowired
 	private FileManagerService fileManagerService;
+	
+	@Autowired
+	private CommentBO commentBO;
+	
+	@Autowired
+	private LikeBO likeBO;
 	
 	// input: X   output: List<PostEntity>
 	public List<PostEntity> getPostList() {
@@ -39,20 +48,21 @@ public class PostBO {
 				.build());
 	}
 	
-	public void deletePostByPostId(int postId) {
+	public void deletePostByPostId(int postId, int userId) {
 		// 기존 글 가져오기
 		PostEntity post = postRepository.findById(postId).orElse(null);
 		if (post == null) {
-			log.info("[글 삭제] post is null");
+			log.info("[글 삭제] post is null postId:{}, userId:{}", postId, userId);
+			return;
 		}
 		// 글 삭제
-		int rowCount = postRepository.deleteById(postId);
+		postRepository.deleteById(postId);
 		
 		// 이미지 삭제
-		if (rowCount > 0) {
-			fileManagerService.deleteFile(post.getImagePath());
-		}
-		// 댓글,좋아요 db에서 삭제
+		fileManagerService.deleteFile(post.getImagePath());
 		
+		// 댓글,좋아요 db에서 삭제
+		commentBO.deleteCommentById(postId);
+		likeBO.deleteLikeById(postId);
 	}
 }
